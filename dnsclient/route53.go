@@ -13,7 +13,7 @@ import (
 	"laps/config"
 )
 
-// UpdateRoute53AAAA updates (upserts) the AAAA record for the given
+// UpdateRoute53 updates (upserts) the AAAA record for the given
 // fully-qualified hostname in the provided Route53 hosted zone. The function
 // uses the default AWS configuration loading chain (environment, shared
 // credentials, etc.).
@@ -24,7 +24,7 @@ import (
 //   - fqdn: fully-qualified domain name to update (e.g. "host.example.com.")
 //   - domain: domain name (unused if fqdn provided, kept for compatibility)
 //   - ipv6: IPv6 address string (e.g. "2001:db8::1")
-func UpdateRoute53AAAA(ctx context.Context, cfg *config.Config, fqdn, ipv6 string) error {
+func UpdateRoute53(ctx context.Context, cfg *config.Config, fqdn, ipv6 string, ipv4 string) error {
 	if fqdn == "" {
 		return fmt.Errorf("fqdn is required")
 	}
@@ -42,25 +42,41 @@ func UpdateRoute53AAAA(ctx context.Context, cfg *config.Config, fqdn, ipv6 strin
 	client := route53.NewFromConfig(awsCfg)
 
 	// Prepare change batch to UPSERT the AAAA record
-	rr := r53types.ResourceRecord{Value: aws.String(ipv6)}
-	rrs := []r53types.ResourceRecord{rr}
+	rrv4 := r53types.ResourceRecord{Value: aws.String(ipv4)}
+	rrsv4 := []r53types.ResourceRecord{rrv4}
 
-	rrsSet := &r53types.ResourceRecordSet{
+	rrsSetv4 := &r53types.ResourceRecordSet{
+		Name:            aws.String(fqdn),
+		Type:            r53types.RRTypeA,
+		TTL:             aws.Int64(300),
+		ResourceRecords: rrsv4,
+	}
+
+	changev4 := r53types.Change{
+		Action:            r53types.ChangeActionUpsert,
+		ResourceRecordSet: rrsSetv4,
+	}
+
+	// Prepare change batch to UPSERT the AAAA record
+	rrv6 := r53types.ResourceRecord{Value: aws.String(ipv6)}
+	rrsv6 := []r53types.ResourceRecord{rrv6}
+
+	rrsSetv6 := &r53types.ResourceRecordSet{
 		Name:            aws.String(fqdn),
 		Type:            r53types.RRTypeAaaa,
 		TTL:             aws.Int64(300),
-		ResourceRecords: rrs,
+		ResourceRecords: rrsv6,
 	}
 
-	change := r53types.Change{
+	changev6 := r53types.Change{
 		Action:            r53types.ChangeActionUpsert,
-		ResourceRecordSet: rrsSet,
+		ResourceRecordSet: rrsSetv6,
 	}
 
 	input := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(cfg.R53ZoneID),
 		ChangeBatch: &r53types.ChangeBatch{
-			Changes: []r53types.Change{change},
+			Changes: []r53types.Change{changev6, changev4},
 		},
 	}
 

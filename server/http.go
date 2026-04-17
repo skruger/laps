@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"laps/config"
@@ -84,12 +85,23 @@ func (f *LapsServer) Run(parentCtx context.Context) {
 type dnsUpdateRequest struct {
 	Hostname  string `json:"hostname"`
 	IPv6Addr  string `json:"ipv6_addr"`
+	IPv4Addr  string `json:"ipv4_addr"`
+	Timestamp int64  `json:"timestamp"`
 	Signature string `json:"signature"`
 }
 
 func (r *dnsUpdateRequest) CheckSignature(psk string) bool {
-	raw := fmt.Sprintf("%s|%s|%s", r.Hostname, r.IPv6Addr, psk)
+	minTime := time.Now().Unix() - 30
+	maxTime := minTime + 60
+	if !(minTime < r.Timestamp && r.Timestamp < maxTime) {
+		log.Printf("Signature time out of range: %d not in [%d, %d]", r.Timestamp, minTime, maxTime)
+		return false
+	}
+
+	raw := fmt.Sprintf("%s|%s|%s|%d|%s", r.Hostname, r.IPv6Addr, r.IPv4Addr, r.Timestamp, psk)
 	sum := sha256.Sum256([]byte(raw))
+	sumStr := hex.EncodeToString(sum[:])
+	log.Print(sumStr)
 	return fmt.Sprintf("%x", sum) == r.Signature
 }
 
@@ -124,8 +136,8 @@ func dnsUpdateHandler(cfg *config.Config) http.HandlerFunc {
 			if req.Hostname == client.Hostname {
 				if req.CheckSignature(client.PSK) {
 					// TODO: update route53 DNS
-					log.Printf("Updating %s to %s", req.Hostname, req.IPv6Addr)
-					err := dnsclient.UpdateRoute53AAAA(context.Background(), cfg, req.Hostname, req.IPv6Addr)
+					log.Printf("Updating %s to %s and %s", req.Hostname, req.IPv6Addr, req.IPv4Addr)
+					err := dnsclient.UpdateRoute53(context.Background(), cfg, req.Hostname, req.IPv6Addr, req.IPv4Addr)
 					if err == nil {
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte("ok"))
