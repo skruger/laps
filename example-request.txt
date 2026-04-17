@@ -1,0 +1,6 @@
+
+
+{"hostname":"lapstest.home.shaunkruger.com","ipv6_addr":"2605:a601:806b:d721:beef:f00d:db26:ae1","signature":"e014859b286a668d4d679c2eb2d7f56db379b53328195de8264c71687cf8f8e8"}
+
+
+lapstest.home.shaunkruger.com|2605:a601:806b:d721:beef:f00d:db26:ae1|abcd1234

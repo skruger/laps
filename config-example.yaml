@@ -1,0 +1,12 @@
+
+listen_port: 8080
+
+domain: "shaunkruger.com"
+r53_zone_id: ""
+
+aws_access_key_id: ""
+aws_secret_key: ""
+
+clients:
+  - preshared_key: "abcd1234"
+    hostname: "lapstest.home.shaunkruger.com"
