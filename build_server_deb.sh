@@ -38,7 +38,8 @@ else
   chmod 0644 "$PKGDIR$CONFIG_DEST"
 fi
 
-cp init/laps-server.service /lib/systemd/system/laps-server.service
+mkdir -p "$PKGDIR/lib/systemd/system"
+cp init/laps-server.service $PKGDIR/lib/systemd/system/laps-server.service
 
 # Populate control file
 MAINTAINER="$(git config user.name 2>/dev/null || echo "packager") <$(git config user.email 2>/dev/null || echo "packager@example.invalid")>"
@@ -53,6 +54,8 @@ Depends: libc6
 Description: laps-server - Small server for updating DNS records for LAPS clients.
 EOF
 
+cp package/DEBIAN-server/* "$PKGDIR/DEBIAN/" 2>/dev/null || true
+chmod 0755 "$PKGDIR/DEBIAN/postinst" "$PKGDIR/DEBIAN/postrm" "$PKGDIR/DEBIAN/prerm"
 chmod 0644 "$PKGDIR/DEBIAN/control"
 
 echo "Building .deb package (you may be prompted for fakeroot if available)..."

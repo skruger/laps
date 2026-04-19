@@ -35,8 +35,9 @@ else
   chmod 0644 "$PKGDIR$CONFIG_DEST"
 fi
 
-cp init/laps-client.service /lib/systemd/system/laps-client.service
-cp init/laps-client.timer /lib/systemd/system/laps-client.timer
+mkdir -p "$PKGDIR/lib/systemd/system"
+cp init/laps-client.service $PKGDIR/lib/systemd/system/laps-client.service
+cp init/laps-client.timer $PKGDIR/lib/systemd/system/laps-client.timer
 
 
 # Populate control file
@@ -52,6 +53,8 @@ Depends: curl
 Description: laps-client - Client for updating DNS records with LAPS server.
 EOF
 
+cp package/DEBIAN-client/* "$PKGDIR/DEBIAN/" 2>/dev/null || true
+chmod 0755 "$PKGDIR/DEBIAN/postinst" "$PKGDIR/DEBIAN/postrm" "$PKGDIR/DEBIAN/prerm"
 chmod 0644 "$PKGDIR/DEBIAN/control"
 
 echo "Building .deb package (you may be prompted for fakeroot if available)..."
