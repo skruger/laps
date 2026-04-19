@@ -30,6 +30,12 @@ case "$1" in
     chown -R "$USER:$GROUP" "$HOME_DIR" || true
     chown "$USER:$GROUP" /etc/laps/client.cfg || true
     systemctl -q daemon-reload
+
+    if [ ! -f "/etc/laps/client.cfg" ]; then
+      # Create a default config file if it doesn't exist
+      cp /usr/share/doc/laps-client/client.cfg /etc/laps/client.cfg
+      chown "$USER:$GROUP" /etc/laps/client.cfg
+    fi
     ;;
 
   *)

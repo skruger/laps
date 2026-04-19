@@ -9,7 +9,7 @@ ARCH=${ARCH:-amd64}
 VERSION=${1:-$(git describe --tags --always 2>/dev/null || echo "0.1.0")}
 INSTALL_PATH=/usr/sbin
 CONFIG_SRC=default/config.yaml
-CONFIG_DEST=/etc/laps/config.yaml
+CONFIG_DEST=/usr/share/doc/laps-server/config.yaml
 
 echo "Packaging $PKGNAME version $VERSION for $ARCH"
 
