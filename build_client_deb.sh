@@ -49,7 +49,7 @@ Section: utils
 Priority: optional
 Architecture: $ARCH
 Maintainer: $MAINTAINER
-Depends: curl
+Depends: curl jq
 Description: laps-client - Client for updating DNS records with LAPS server.
 EOF
 
