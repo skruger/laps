@@ -27,16 +27,15 @@ case "$1" in
     fi
 
     # ensure ownership of package files
-    #chown -R "$USER:$GROUP" "$HOME_DIR" || true
+    mkdir -p "${HOME_DIR}"
+    chown -R "$USER:$GROUP" "$HOME_DIR" || true
 
-
-    chown "$USER:$GROUP" /etc/laps/config.yaml || true
     systemctl -q daemon-reload
 
     if [ ! -f "/etc/laps/config.yaml" ]; then
       # Create a default config file if it doesn't exist
       cp /usr/share/doc/laps-server/config.yaml /etc/laps/config.yaml
-      chown "$USER:$GROUP" /etc/laps/config.yaml
+      chown "$USER:$GROUP" /etc/laps/config.yaml || true
     fi
 
 
