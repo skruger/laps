@@ -7,7 +7,7 @@ set -euo pipefail
 PKGNAME=laps-server
 ARCH=${ARCH:-amd64}
 VERSION=${1:-$(git describe --tags --always 2>/dev/null || echo "0.1.0")}
-INSTALL_PATH=/usr/local/sbin
+INSTALL_PATH=/usr/sbin
 CONFIG_SRC=default/config.yaml
 CONFIG_DEST=/etc/laps/config.yaml
 
@@ -37,6 +37,8 @@ else
   echo "# laps-server" > "$PKGDIR$CONFIG_DEST"
   chmod 0644 "$PKGDIR$CONFIG_DEST"
 fi
+
+cp init/laps-server.service /lib/systemd/system/laps-server.service
 
 # Populate control file
 MAINTAINER="$(git config user.name 2>/dev/null || echo "packager") <$(git config user.email 2>/dev/null || echo "packager@example.invalid")>"

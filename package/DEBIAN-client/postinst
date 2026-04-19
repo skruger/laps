@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+PACKAGE="laps-client"
+USER="laps-client"
+GROUP="laps-client"
+HOME_DIR="/var/lib/$PACKAGE"
+SHELL="/usr/sbin/nologin"  # or /bin/false
+
+# $1 is the action (configure for install)
+case "$1" in
+  configure)
+    # create group if missing
+    if ! getent group "$GROUP" >/dev/null 2>&1; then
+      addgroup --system --quiet "$GROUP"
+    fi
+
+    # create system user if missing
+    if ! id -u "$USER" >/dev/null 2>&1; then
+      adduser --system --quiet \
+              --ingroup "$GROUP" \
+              --home "$HOME_DIR" \
+              --no-create-home \
+              --shell "$SHELL" \
+              --disabled-login \
+              "$USER"
+    fi
+
+    # ensure ownership of package files
+    chown -R "$USER:$GROUP" "$HOME_DIR" || true
+    chown "$USER:$GROUP" /etc/laps/client.cfg || true
+    systemctl -q daemon-reload
+    ;;
+
+  *)
+    # nothing for other actions
+    ;;
+esac
+
+exit 0

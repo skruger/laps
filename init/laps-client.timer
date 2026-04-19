@@ -1,0 +1,12 @@
+[Unit]
+Description=Run LAPS client every 30 minutes
+
+[Timer]
+# Start shortly after boot and then every 30 minutes
+OnBootSec=5min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

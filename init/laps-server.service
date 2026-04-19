@@ -1,0 +1,20 @@
+[Unit]
+Description=LAPS Server
+Documentation=
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=laps-server
+Group=laps-server
+RuntimeDirectory=laps-server
+ExecStart=/usr/sbin/laps-server
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

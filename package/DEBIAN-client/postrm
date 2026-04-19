@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+PACKAGE="laps-client"
+USER="laps-client"
+
+case "$1" in
+  purge)
+    # Remove the user only on purge. Be careful: only remove if it's the package's user.
+    # This is a best-effort; do not remove the user if it owns files outside package scope.
+    if id -u "$USER" >/dev/null 2>&1; then
+      # deluser will refuse if files outside home exist unless --remove-all-files is used.
+      # Use --remove-home to remove home dir; adjust flags as desired.
+      deluser --remove-home --quiet "$USER" || true
+      # optionally remove group if empty:
+      delgroup --quiet "$USER" || true
+    fi
+    ;;
+  *)
+    # keep user for remove/upgrade
+    ;;
+esac
+
+exit 0
