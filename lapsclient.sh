@@ -1,5 +1,11 @@
 #!/bin/sh
 
+LAPS_CLIENT_CONFIG=${LAPS_CLIENT_CONFIG:-/etc/laps/client.cfg}
+
+if [ -f $LAPS_CLIENT_CONFIG ]; then
+  . $LAPS_CLIENT_CONFIG
+fi
+
 if [ "$FQDN" = "" ]; then
   FQDN=$(hostname -f)
 fi
@@ -10,7 +16,7 @@ ipv4_addr=$(ip -4 addr show scope global |grep inet |awk '{print $2}' |head -n 1
 
 timestamp=$(date +%s)
 
-signature=$(printf "%s|%s|%s|%s|%s" "$FQDN" "$ipv6_addr" "$ipv4_addr" "$timestamp" "abcd1234" | sha256sum | awk '{print $1}')
+signature=$(printf "%s|%s|%s|%s|%s" "$FQDN" "$ipv6_addr" "$ipv4_addr" "$timestamp" "$CLIENT_SECRET" | sha256sum | awk '{print $1}')
 
 echo $FQDN
 echo $ipv6_addr
@@ -34,4 +40,4 @@ request_body=$(jq -n --arg fqdn "$FQDN" \
 
 echo $request_body
 
-curl -X POST -H "Content-Type: application/json" -d "$request_body" http://localhost:8080/update_dns
+curl -X POST -H "Content-Type: application/json" -d "$request_body" ${LAPS_SERVER:-http://localhost:8080}/update_dns

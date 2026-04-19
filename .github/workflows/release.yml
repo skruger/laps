@@ -1,0 +1,119 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Determine or create release tag
+        id: tag
+        run: |
+          set -euo pipefail
+          git fetch --tags
+          # If HEAD already has a tag, use it
+          current_tag=$(git tag --points-at HEAD)
+          if [ -n "$current_tag" ]; then
+            echo "Head already tagged: $current_tag"
+            TAG="$current_tag"
+          else
+            latest_tag=$(git tag --sort=-v:refname | head -n1 || true)
+            if [ -z "$latest_tag" ]; then
+              latest_tag="v0.0.0"
+            fi
+            sem=${latest_tag#v}
+            IFS='.' read -r major minor patch <<< "${sem}"
+            major=${major:-0}
+            minor=${minor:-0}
+            patch=${patch:-0}
+            patch=$((patch+1))
+            TAG="v${major}.${minor}.${patch}"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Build .deb for amd64 and arm64
+        run: |
+          set -euo pipefail
+          chmod +x ./build_server_deb.sh
+          echo "Building amd64..."
+          ARCH=amd64 ./build_server_deb.sh ${VERSION}
+          ARCH=amd64 ./build_client_deb.sh ${VERSION}
+          echo "Building arm64..."
+          ARCH=arm64 ./build_server_deb.sh ${VERSION}
+          ARCH=arm64 ./build_client_deb.sh ${VERSION}
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: ${{ steps.tag.outputs.tag }}
+          body: "Automated release from GitHub Actions"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload amd64 server artifact to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: laps-server_${{ steps.tag.outputs.version }}_amd64.deb
+          asset_name: laps-server_${{ steps.tag.outputs.version }}_amd64.deb
+          asset_content_type: application/x-debian-package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload arm64 server artifact to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: laps-server_${{ steps.tag.outputs.version }}_arm64.deb
+          asset_name: laps-server_${{ steps.tag.outputs.version }}_arm64.deb
+          asset_content_type: application/x-debian-package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload amd64 client artifact to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: laps-client_${{ steps.tag.outputs.version }}_amd64.deb
+          asset_name: laps-client_${{ steps.tag.outputs.version }}_amd64.deb
+          asset_content_type: application/x-debian-package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload arm64 client artifact to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: laps-client_${{ steps.tag.outputs.version }}_arm64.deb
+          asset_name: laps-client_${{ steps.tag.outputs.version }}_arm64.deb
+          asset_content_type: application/x-debian-package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
