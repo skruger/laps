@@ -32,13 +32,6 @@ case "$1" in
 
     systemctl -q daemon-reload
 
-    if [ ! -f "/etc/laps/config.yaml" ]; then
-      # Create a default config file if it doesn't exist
-      cp /usr/share/doc/laps-server/config.yaml /etc/laps/config.yaml
-      chown "$USER:$GROUP" /etc/laps/config.yaml || true
-    fi
-
-
     ;;
 
   *)

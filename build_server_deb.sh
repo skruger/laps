@@ -9,7 +9,7 @@ ARCH=${ARCH:-amd64}
 VERSION=${1:-$(git describe --tags --always 2>/dev/null || echo "0.1.0")}
 INSTALL_PATH=/usr/sbin
 CONFIG_SRC=default/config.yaml
-CONFIG_DEST=/usr/share/doc/laps-server/config.yaml
+CONFIG_DEST=/etc/laps/config.yaml
 
 echo "Packaging $PKGNAME version $VERSION for $ARCH"
 
@@ -53,10 +53,13 @@ Maintainer: $MAINTAINER
 Depends: libc6
 Description: laps-server - Small server for updating DNS records for LAPS clients.
 EOF
+chmod 0644 "$PKGDIR/DEBIAN/control"
+
+echo "/etc/laps/config.yaml" > "${PKGDIR}/DEBIAN/conffiles"
+chmod 0644 "${PKGDIR}/DEBIAN/conffiles"
 
 cp package/DEBIAN-server/* "$PKGDIR/DEBIAN/" 2>/dev/null || true
 chmod 0755 "$PKGDIR/DEBIAN/postinst" "$PKGDIR/DEBIAN/postrm" "$PKGDIR/DEBIAN/prerm"
-chmod 0644 "$PKGDIR/DEBIAN/control"
 
 echo "Building .deb package (you may be prompted for fakeroot if available)..."
 if command -v fakeroot >/dev/null 2>&1; then

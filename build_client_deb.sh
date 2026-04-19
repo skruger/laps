@@ -10,7 +10,7 @@ VERSION=${1:-$(git describe --tags --always 2>/dev/null || echo "0.1.0")}
 INSTALL_PATH=/usr/sbin
 CONFIG_SRC=default/client.cfg
 
-CONFIG_DEST=/usr/share/doc/laps-client/client.cfg
+CONFIG_DEST=/etc/laps/client.cfg
 
 echo "Packaging $PKGNAME version $VERSION for $ARCH"
 
@@ -53,10 +53,13 @@ Maintainer: $MAINTAINER
 Depends: curl, jq
 Description: laps-client - Client for updating DNS records with LAPS server.
 EOF
+chmod 0644 "$PKGDIR/DEBIAN/control"
+
+echo "/etc/laps/client.cfg" > "${PKGDIR}/DEBIAN/conffiles"
+chmod 0644 "${PKGDIR}/DEBIAN/conffiles"
 
 cp package/DEBIAN-client/* "$PKGDIR/DEBIAN/" 2>/dev/null || true
 chmod 0755 "$PKGDIR/DEBIAN/postinst" "$PKGDIR/DEBIAN/postrm" "$PKGDIR/DEBIAN/prerm"
-chmod 0644 "$PKGDIR/DEBIAN/control"
 
 echo "Building .deb package (you may be prompted for fakeroot if available)..."
 if command -v fakeroot >/dev/null 2>&1; then
