@@ -38,7 +38,7 @@ else
   chmod 0644 "$PKGDIR$CONFIG_DEST"
 fi
 
-cp init/laps-server.service /lib/systemd/system/laps-server.service
+cp init/laps-server.service $PKGDIR/lib/systemd/system/laps-server.service
 
 # Populate control file
 MAINTAINER="$(git config user.name 2>/dev/null || echo "packager") <$(git config user.email 2>/dev/null || echo "packager@example.invalid")>"

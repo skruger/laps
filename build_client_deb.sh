@@ -35,8 +35,8 @@ else
   chmod 0644 "$PKGDIR$CONFIG_DEST"
 fi
 
-cp init/laps-client.service /lib/systemd/system/laps-client.service
-cp init/laps-client.timer /lib/systemd/system/laps-client.timer
+cp init/laps-client.service $PKGDIR/lib/systemd/system/laps-client.service
+cp init/laps-client.timer $PKGDIR/lib/systemd/system/laps-client.timer
 
 
 # Populate control file
