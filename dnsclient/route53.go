@@ -73,10 +73,16 @@ func UpdateRoute53(ctx context.Context, cfg *config.Config, fqdn, ipv6 string, i
 		ResourceRecordSet: rrsSetv6,
 	}
 
+	changes := []r53types.Change{changev6}
+
+	if ipv4 != "" {
+		changes = append(changes, changev4)
+	}
+
 	input := &route53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(cfg.R53ZoneID),
 		ChangeBatch: &r53types.ChangeBatch{
-			Changes: []r53types.Change{changev6, changev4},
+			Changes: changes,
 		},
 	}
 

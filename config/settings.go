@@ -21,8 +21,9 @@ type Config struct {
 }
 
 type Clients struct {
-	PSK      string `yaml:"preshared_key"`
-	Hostname string `yaml:"hostname"`
+	PSK        string `yaml:"preshared_key"`
+	Hostname   string `yaml:"hostname"`
+	UpdateIPv4 bool   `yaml:"update_ipv4"`
 }
 
 // LoadConfig reads the named file and unmarshals its contents into a Config.

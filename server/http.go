@@ -135,9 +135,13 @@ func dnsUpdateHandler(cfg *config.Config) http.HandlerFunc {
 		for _, client := range cfg.Clients {
 			if req.Hostname == client.Hostname {
 				if req.CheckSignature(client.PSK) {
-					// TODO: update route53 DNS
-					log.Printf("Updating %s to %s and %s", req.Hostname, req.IPv6Addr, req.IPv4Addr)
-					err := dnsclient.UpdateRoute53(context.Background(), cfg, req.Hostname, req.IPv6Addr, req.IPv4Addr)
+					ipv4_addr := ""
+					if client.UpdateIPv4 {
+						ipv4_addr = req.IPv4Addr
+					}
+
+					log.Printf("Updating %s to ipv6 '%s' and ipv4 '%s'", req.Hostname, req.IPv6Addr, ipv4_addr)
+					err := dnsclient.UpdateRoute53(context.Background(), cfg, req.Hostname, req.IPv6Addr, ipv4_addr)
 					if err == nil {
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte("ok"))
